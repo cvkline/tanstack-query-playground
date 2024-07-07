@@ -1,26 +1,42 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import {QueryClient, QueryClientProvider, useQuery} from '@tanstack/react-query';
 
-function App() {
+const queryClient = new QueryClient();
+
+async function fetchISS() {
+  console.info(`${new Date().toLocaleTimeString()}... FETCH`);
+  const response = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
+  if (!response.ok) throw new Error('Network response was not ok');
+  console.info('FETCH COMPLETE');
+  return response.json();
+}
+
+function ISS(): JSX.Element {
+  const query = useQuery({
+    queryKey: ['iss'],
+    queryFn: fetchISS,
+    staleTime: 2 * 60 * 1000,
+  });
+  if (query.isLoading) return <p>Loading...</p>;
+  const {data} = query;
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+      <>
+        <p>Latitude: {data.latitude}</p>
+        <p>Longitude: {data.longitude}</p>
+        <p>Altitude: {data.altitude}</p>
+      </>
   );
 }
 
-export default App;
+export function App(): JSX.Element {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <div>
+        <h1>International Space Station</h1>
+        <ISS />
+      </div>
+    </QueryClientProvider>
+
+  );
+}
