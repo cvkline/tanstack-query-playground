@@ -20,10 +20,9 @@ const velocityFormatter = new Intl.NumberFormat(locale, {...unitDisplay, unit: '
 const queryClient = new QueryClient();
 
 async function fetchISS() {
-  console.info(`${new Date().toLocaleTimeString()}... FETCH`);
   const response = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
   if (!response.ok) throw new Error('Network response was not ok');
-  console.info('FETCH COMPLETE');
+  console.info(`${new Date().toLocaleTimeString()} ... FETCH COMPLETE`);
   return response.json() as Promise<ISSData>;
 }
 
@@ -52,7 +51,7 @@ function ISS(): JSX.Element {
 export function App(): JSX.Element {
   return (
     <QueryClientProvider client={queryClient}>
-      <div>
+      <div style={{paddingLeft: '20px'}}>
         <h1>International Space Station</h1>
         <ISS />
       </div>
