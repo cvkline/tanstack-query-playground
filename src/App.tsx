@@ -11,13 +11,31 @@ type ISSData = {
 }
 
 const locale = navigator.language ?? 'en-US';
-const unitDisplay: Intl.NumberFormatOptions = {style: 'unit', unitDisplay: 'short'};
+const unitDisplay: Intl.NumberFormatOptions = {style: 'unit', unitDisplay: 'short', maximumFractionDigits: 2};
 const dateFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'long', dateStyle: 'medium'}).format;
 const angleFormatter = new Intl.NumberFormat(locale, {...unitDisplay, unit: 'degree'}).format;
 const altitudeFormatter = new Intl.NumberFormat(locale, {...unitDisplay, unit: 'kilometer'}).format;
 const velocityFormatter = new Intl.NumberFormat(locale, {...unitDisplay, unit: 'kilometer-per-hour'}).format;
 
 const queryClient = new QueryClient();
+
+function TableDump(props: {obj: Record<string, unknown>}): JSX.Element {
+  return (
+    <table>
+      <tbody style={{fontFamily: 'monospace'}}>
+        {Object.keys(props.obj)
+          .filter(k => !(props.obj[k] instanceof Function))
+          .map(k => (
+            <tr key={k}>
+              <td>{k}</td>
+              <td>{JSON.stringify(props.obj[k])}</td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  )
+}
 
 async function fetchISS() {
   const response = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
@@ -35,7 +53,7 @@ function ISS(): JSX.Element {
   });
   if (query.status === 'pending') return <p>Loading...</p>;
   if (query.status === 'error') return <p>Error: {query.error.message}</p>;
-  const {data} = query;
+  const {data, ...rest} = query;
 
   return (
     <>
@@ -44,6 +62,7 @@ function ISS(): JSX.Element {
       <p>Longitude: {angleFormatter(data.longitude)}</p>
       <p>Altitude: {altitudeFormatter(data.altitude)}</p>
       <p>Orbital Velocity: {velocityFormatter(data.velocity)}</p>
+      <TableDump obj={rest} />
     </>
   );
 }
