@@ -37,7 +37,7 @@ function TableDump(props: {obj: Record<string, unknown>}): JSX.Element {
     <table style={{border: '1px solid black', background: '#eee'}}>
       <tbody>
         {Object.keys(props.obj)
-        .sort()
+          .sort()
           .filter(k => !(props.obj[k] instanceof Function))
           .map(k => (
             <tr key={k}>
