@@ -9,6 +9,8 @@ type ISSData = {
   readonly timestamp: number;
 }
 
+const URL = 'https://api.wheretheiss.at/v1/satellites/25544';
+
 const locale = navigator.language;
 const unitDisplay: Intl.NumberFormatOptions = {style: 'unit', unitDisplay: 'long', maximumFractionDigits: 2};
 const dateFormatter = new Intl.DateTimeFormat(locale, {timeStyle: 'medium', dateStyle: 'medium', hourCycle: 'h23'}).format;
@@ -19,40 +21,41 @@ const integerFormatter = new Intl.NumberFormat(locale).format;
 
 const queryClient = new QueryClient();
 
-function TableDump(props: {obj: Record<string, unknown>}): JSX.Element {
-  function display(val: any): JSX.Element {
-    if (typeof val === 'number') {
-      if (val > 1700000000000) return <span>{dateFormatter(new Date(val))}</span>
-      return <span>{integerFormatter(val)}</span>
-    }
-    if (typeof val === 'boolean') {
-      if (val) return <span style={{color: 'green', fontWeight: 'bold'}}>true</span>;
-      return <span style={{color: 'red', fontWeight: 'bold'}}>false</span>;
-    }
-    if (typeof val === 'string') return <span>{`"${val}"`}</span>;
-    return <span>{String(val)}</span>;
+const Value = (props: {val: any}): JSX.Element => {
+  const {val} = props;
+  if (typeof val === 'number') {
+    if (val > 1700000000000) return <span>{dateFormatter(new Date(val))}</span>
+    return <span>{integerFormatter(val)}</span>
   }
-
-  return (
-    <table style={{border: '1px solid black', background: '#eee'}}>
-      <tbody>
-        {Object.keys(props.obj)
-          .sort()
-          .filter(k => !(props.obj[k] instanceof Function))
-          .map(k => (
-            <tr key={k}>
-              <td style={{fontFamily: 'monospace'}}>{k}</td>
-              <td style={{fontSize: '11pt'}}>{display(props.obj[k])}</td>
-            </tr>
-          ))
-        }
-      </tbody>
-    </table>
-  )
+  if (typeof val === 'boolean') {
+    if (val) return <span style={{color: 'green', fontWeight: 'bold'}}>true</span>;
+    return <span style={{color: 'red', fontWeight: 'bold'}}>false</span>;
+  }
+  if (typeof val === 'string') return <span>{`"${val}"`}</span>;
+  return <span>{String(val)}</span>;
 }
 
+const TableDump = (props: {obj: Record<string, unknown>}) => (
+  <table style={{border: '1px solid black', background: '#eee'}}>
+    <tbody>
+      {Object.keys(props.obj)
+        .sort()
+        .filter(k => !(props.obj[k] instanceof Function))
+        .map(k => (
+          <tr key={k}>
+            <td style={{fontFamily: 'monospace'}}>{k}</td>
+            <td style={{fontSize: '11pt'}}>
+              <Value val={props.obj[k]} />
+            </td>
+          </tr>
+        ))
+      }
+    </tbody>
+  </table>
+)
+
 async function fetchISS() {
-  const response = await fetch('https://api.wheretheiss.at/v1/satellites/25544');
+  const response = await fetch(URL);
   if (!response.ok) throw new Error('Network response was not ok');
   console.info(`${new Date().toLocaleTimeString()} ... FETCH COMPLETE`);
   return response.json() as Promise<ISSData>;
